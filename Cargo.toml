@@ -1,0 +1,17 @@
+[package]
+name = "changelog"
+version = "0.1.0"
+authors = ["Florentin DUBOIS <contact@florentin-dubois.fr>"]
+build = "build.rs"
+
+[dependencies]
+env_logger = "0.5.10"
+failure = "0.1.1"
+log = "0.4.3"
+structopt = "0.2.10"
+structopt-derive = "0.2.10"
+
+[build-dependencies]
+failure = "0.1.1"
+git2 = "0.7.1"
+time = "0.1.40"

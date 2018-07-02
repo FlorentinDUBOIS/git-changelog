@@ -1,0 +1,2 @@
+const BUILD_DATE: &str = "2018-07-02T17:54:54Z";
+const GITHASH: &str = "820305ff649f45f72be9505bfb353d59a9268ece";
