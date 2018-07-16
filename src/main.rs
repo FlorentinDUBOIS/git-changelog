@@ -8,8 +8,13 @@ extern crate log;
 extern crate structopt;
 #[macro_use]
 extern crate structopt_derive;
+#[macro_use]
+extern crate askama;
+extern crate git2;
+extern crate time;
 
-mod cmd;
+pub mod cmd;
+pub mod parser;
 
 use cmd::generate::generate;
 use cmd::version::version;
@@ -23,7 +28,7 @@ pub fn main() -> Result<(), Error> {
   let opt = Opt::from_args();
   let result = match opt.cmd {
     Some(cmd) => match cmd {
-      Command::Generate { .. } => generate(),
+      Command::Generate { path, output } => generate(&path, &output),
       Command::Version { .. } => version(),
     },
     None => Ok(()),
