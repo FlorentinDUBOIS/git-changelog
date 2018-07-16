@@ -13,10 +13,10 @@ use std::path::PathBuf;
 ///
 /// Open the repository at the given `path`. Scrape git history information from it.
 /// Output the result into the given `output` file.
-pub fn generate(path: &PathBuf, output: &PathBuf) -> Result<(), Error> {
+pub fn generate(path: &PathBuf, output: &PathBuf, no_merges: &bool) -> Result<(), Error> {
   let repository = Repository::discover(path)?;
 
-  let parser = Parser::new();
+  let parser = Parser::new(no_merges);
   let changelog = parser.parse(&repository)?;
 
   let mut file = File::create(output)?;

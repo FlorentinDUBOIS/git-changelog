@@ -28,5 +28,9 @@ pub enum Command {
     /// Set the path of the git repository
     #[structopt(long = "output", short = "o", default_value = "CHANGELOG.md", parse(from_os_str))]
     output: PathBuf,
+
+    /// Remove merge commits
+    #[structopt(long = "no-merges")]
+    no_merges: bool,
   },
 }

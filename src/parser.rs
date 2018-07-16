@@ -29,7 +29,9 @@ impl Changelog {
 }
 
 #[derive(Debug, Clone)]
-struct ParserImpl {}
+struct ParserImpl {
+  pub no_merges: bool,
+}
 
 pub trait Parser {
   fn parse(&self, repository: &Repository) -> Result<Changelog, Error>;
@@ -44,7 +46,9 @@ impl Parser for ParserImpl {
     let mut commits = vec![];
     for oid in revwalk {
       let oid = oid?;
-      commits.push(self.convert(repository, &oid)?);
+      if let Some(commit) = self.convert(repository, &oid)? {
+        commits.push(commit);
+      }
     }
 
     Ok(Changelog::new(&commits))
@@ -52,7 +56,7 @@ impl Parser for ParserImpl {
 }
 
 impl ParserImpl {
-  pub fn convert(&self, repository: &Repository, oid: &Oid) -> Result<Commit, Error> {
+  pub fn convert(&self, repository: &Repository, oid: &Oid) -> Result<Option<Commit>, Error> {
     let commit = repository.find_commit(*oid)?;
     let author = match commit.author().name() {
       Some(author) => String::from(author),
@@ -70,23 +74,30 @@ impl ParserImpl {
       },
     };
 
+    if self.no_merges
+      && (message.starts_with("Merge pull request") || message.starts_with("Merge branches"))
+    {
+      return Ok(None);
+    }
+
     let time = commit.time();
     let tm = at_utc(Timespec::new(time.seconds(), 0));
-
     let mut hash = oid.to_string();
 
     hash.truncate(7);
-    Ok(Commit {
+    Ok(Some(Commit {
       hash,
       author,
       date: tm.strftime("%F")?.to_string(),
       message,
-    })
+    }))
   }
 }
 
 impl Parser {
-  pub fn new() -> impl Parser {
-    ParserImpl {}
+  pub fn new(no_merges: &bool) -> impl Parser {
+    ParserImpl {
+      no_merges: no_merges.clone(),
+    }
   }
 }
