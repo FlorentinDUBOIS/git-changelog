@@ -21,10 +21,6 @@ pub enum Command {
 
   #[structopt(name = "generate")]
   Generate {
-    /// Preset to use
-    #[structopt(long = "preset", short = "p", default_value = "commitizen")]
-    preset: String,
-
     /// Set the path of the git repository
     #[structopt(long = "path", default_value = ".", parse(from_os_str))]
     path: PathBuf,

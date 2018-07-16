@@ -2,6 +2,7 @@
 //!
 //! The build module create rust files at build time
 //! in order to inject some source code.
+extern crate askama;
 extern crate failure;
 extern crate git2;
 extern crate time;
@@ -13,6 +14,9 @@ use std::io::Write;
 use time::now_utc;
 
 pub fn main() -> Result<(), Error> {
+  // Transpile templates if they changed
+  askama::rerun_if_templates_changed();
+
   // Load the current git repository and retrieve the last commit using the
   // HEAD current reference
   let repository = Repository::discover(".").context("Expect to have a git repository")?;
