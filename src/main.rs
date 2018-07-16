@@ -28,7 +28,11 @@ pub fn main() -> Result<(), Error> {
   let opt = Opt::from_args();
   let result = match opt.cmd {
     Some(cmd) => match cmd {
-      Command::Generate { path, output } => generate(&path, &output),
+      Command::Generate {
+        path,
+        output,
+        no_merges,
+      } => generate(&path, &output, &no_merges),
       Command::Version { .. } => version(),
     },
     None => Ok(()),
