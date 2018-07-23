@@ -21,20 +21,20 @@ pub struct Changelog {
 }
 
 impl Changelog {
-  pub fn new(commits: &Vec<Commit>) -> Changelog {
+  pub fn new(commits: &[Commit]) -> Changelog {
     Changelog {
-      commits: commits.clone(),
+      commits: commits.to_owned(),
     }
   }
 }
 
-#[derive(Debug, Clone)]
-struct ParserImpl {
-  pub no_merges: bool,
-}
-
 pub trait Parser {
   fn parse(&self, repository: &Repository) -> Result<Changelog, Error>;
+}
+
+#[derive(Debug, Clone)]
+pub struct ParserImpl {
+  pub no_merges: bool,
 }
 
 impl Parser for ParserImpl {
@@ -52,6 +52,12 @@ impl Parser for ParserImpl {
     }
 
     Ok(Changelog::new(&commits))
+  }
+}
+
+impl ParserImpl {
+  pub fn new(no_merges: bool) -> ParserImpl {
+    ParserImpl { no_merges }
   }
 }
 
@@ -91,13 +97,5 @@ impl ParserImpl {
       date: tm.strftime("%F")?.to_string(),
       message,
     }))
-  }
-}
-
-impl Parser {
-  pub fn new(no_merges: &bool) -> impl Parser {
-    ParserImpl {
-      no_merges: no_merges.clone(),
-    }
   }
 }

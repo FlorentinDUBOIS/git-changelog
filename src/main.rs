@@ -32,7 +32,7 @@ pub fn main() -> Result<(), Error> {
         path,
         output,
         no_merges,
-      } => generate(&path, &output, &no_merges),
+      } => generate(&path, &output, no_merges),
       Command::Version { .. } => version(),
     },
     None => Ok(()),
