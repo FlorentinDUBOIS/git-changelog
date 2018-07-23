@@ -21,9 +21,9 @@ pub enum Command {
 
   #[structopt(name = "generate")]
   Generate {
-    /// Set the path of the git repository
-    #[structopt(long = "path", default_value = ".", parse(from_os_str))]
-    path: PathBuf,
+    /// Set the policy
+    #[structopt(long = "policy", default_value = "policy.toml", parse(from_os_str))]
+    policy: PathBuf,
 
     /// Set the path of the git repository
     #[structopt(long = "output", short = "o", default_value = "CHANGELOG.md", parse(from_os_str))]
