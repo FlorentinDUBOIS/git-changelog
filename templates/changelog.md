@@ -1,9 +1,10 @@
 # Changelog
-
-{%- for repository in repositories %}
-
+{% for repository in repositories %}
 ## {{ repository.name }}
-{% for commit in repository.commits %}
+{% for kind in repository.kinds %}
+### {{ kind.name }}
+{% for commit in kind.commits %}
 - {{ commit.hash }} >>> {{ commit.date }} | {{ commit.message }} [{{ commit.author }}]
 {%- endfor %}
-{%- endfor %}
+{% endfor %}
+{%- endfor -%}
