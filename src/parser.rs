@@ -129,10 +129,10 @@ impl Repository {
             }
 
             if let Some(ref scope) = scope {
+                let sub_scopes = scope.as_str().split(',');
                 if let Some(ref scopes) = repository.scopes {
-                    let _scopes = scope.as_str().split(',');
-                    for _scope in _scopes {
-                        if !scopes.contains(&String::from(_scope)) {
+                    for sub_scope in sub_scopes {
+                        if !scopes.contains(&String::from(sub_scope)) {
                             warn!("Scope is not contained in provided scopes";  "hash" => &hash, "scope" => scope);
                             continue;
                         }
