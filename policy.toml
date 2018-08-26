@@ -59,4 +59,6 @@ scopes = [
 #
 # if range is omited all history is used.
 #
-# example: range = "820305f..HEAD"
+# example:
+#
+# range = "820305f..HEAD"

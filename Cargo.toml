@@ -1,27 +1,43 @@
+cargo-features = ["edition"]
+
 [package]
 name = "changelog"
+description = "Generate a changelog using the git commit history"
 version = "0.1.0"
 authors = ["Florentin DUBOIS <contact@florentin-dubois.fr>"]
 build = "build.rs"
+edition = "2018"
 
 [dependencies]
 askama = "0.7.1"
-failure = "0.1.1"
-git2 = "0.7.4"
+failure = "0.1.2"
+git2 = "0.7.5"
 structopt = "0.2.10"
 structopt-derive = "0.2.10"
 time = "0.1.40"
 config = "0.9.0"
-serde = "1.0.70"
-serde_derive = "1.0.70"
+serde = "1.0.75"
+serde_derive = "1.0.75"
 slog = "2.3.2"
 slog-term = "2.4.0"
 slog-async = "2.3.0"
 slog-scope = "4.0.1"
-regex = "1.0.2"
+regex = "1.0.4"
 
 [build-dependencies]
 askama = "0.7.1"
-failure = "0.1.1"
-git2 = "0.7.4"
+failure = "0.1.2"
+git2 = "0.7.5"
 time = "0.1.40"
+
+[badges]
+travis-ci = { repository = "FlorentinDUBOIS/changelog", branch = "master" }
+
+[profile.release]
+lto = true
+
+[profile.bench]
+lto = true
+
+[features]
+default = []
