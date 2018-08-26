@@ -2,13 +2,13 @@
 //!
 //! The parser module provides traits and structures for generate changelog.
 use askama::Template;
+use crate::policy;
 use failure::Error;
 use git2;
-use policy;
 use regex::Regex;
 use slog_scope::{logger, scope};
 use std::collections::HashMap;
-use std::convert::From;
+use std::convert::{From, TryFrom};
 use time::{at_utc, Timespec};
 
 // https://regex101.com/r/X9RoUY/4
@@ -23,10 +23,9 @@ struct Commit {
     pub date: String,
 }
 
-impl Commit {
-    // Move this under the trait `std::convert::TryFrom<(&git2::Repository, &git2::Oid)>` when
-    // feature will be stabilize.
-    pub fn try_from(tuple: (&git2::Repository, &git2::Oid)) -> Result<Self, Error> {
+impl TryFrom<(&git2::Repository, &git2::Oid)> for Commit {
+    type Error = Error;
+    fn try_from(tuple: (&git2::Repository, &git2::Oid)) -> Result<Self, Error> {
         let (repository, oid) = tuple;
         let commit = repository.find_commit(oid.to_owned())?;
         let author = match commit.author().name() {
@@ -79,10 +78,9 @@ struct Repository {
     pub kinds: Vec<Kind>,
 }
 
-impl Repository {
-    // Move this under the trait `std::convert::TryFrom<(&HashMap<String, String>, &policy::Repository)>`
-    // when feature will be stabilize.
-    pub fn try_from(tuple: (&HashMap<String, String>, &policy::Repository)) -> Result<Self, Error> {
+impl TryFrom<(&HashMap<String, String>, &policy::Repository)> for Repository {
+    type Error = Error;
+    fn try_from(tuple: (&HashMap<String, String>, &policy::Repository)) -> Result<Self, Error> {
         let (kinds, repository) = tuple;
         let repo = git2::Repository::discover(repository.path.to_owned())?;
         let mut revwalk = repo.revwalk()?;

@@ -1,9 +1,9 @@
 //! # Command module
 //!
 //! The command module provide command line interface utilities.
+use crate::parser::{Parser, ParserImpl};
+use crate::policy::Policy;
 use failure::Error;
-use parser::{Parser, ParserImpl};
-use policy::Policy;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;

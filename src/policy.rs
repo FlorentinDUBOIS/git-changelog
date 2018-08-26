@@ -21,12 +21,8 @@ pub struct Policy {
 }
 
 impl Policy {
-    fn new() -> Result<Config, Error> {
-        Ok(Config::default())
-    }
-
     pub fn from(path: &PathBuf) -> Result<Self, Error> {
-        let mut policy = Self::new()?;
+        let mut policy = Config::default();
 
         policy.merge(File::from(path.to_owned()).required(true))?;
 

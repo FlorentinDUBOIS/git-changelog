@@ -1,33 +1,27 @@
 //! # Changelog
 //!
 //! Generate a changelog using the git commit history
+#![feature(try_from)]
+
 #[macro_use]
 extern crate failure;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde;
-extern crate structopt;
 #[macro_use]
 extern crate structopt_derive;
 #[macro_use]
 extern crate askama;
-extern crate config;
-extern crate git2;
-extern crate time;
 #[macro_use]
 extern crate slog;
-extern crate regex;
-extern crate slog_async;
 #[macro_use]
 extern crate slog_scope;
-extern crate slog_term;
 
 pub mod cmd;
 pub mod logger;
 pub mod parser;
 pub mod policy;
 
-use cmd::{Command, Opt};
+use crate::cmd::{Command, Opt};
 use failure::Error;
 use structopt::StructOpt;
 
