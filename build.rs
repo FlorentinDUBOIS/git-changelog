@@ -2,11 +2,7 @@
 //!
 //! The build module create rust files at build time
 //! in order to inject some source code.
-extern crate askama;
-extern crate failure;
-extern crate git2;
-extern crate time;
-
+use askama;
 use failure::{Error, ResultExt};
 use git2::Repository;
 use std::fs::File;
