@@ -62,3 +62,9 @@ scopes = [
 # example:
 #
 # range = "820305f..HEAD"
+
+# Link allow to directly retrieve commit details by providing a link pointing to
+# them.
+#
+# Use {hash} to select the place where the commit's hash should be inject
+link = "https://github.com/FlorentinDUBOIS/changelog/commit/{hash}"

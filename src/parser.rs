@@ -9,6 +9,7 @@ use regex::Regex;
 use slog_scope::{logger, scope};
 use std::collections::HashMap;
 use std::convert::{From, TryFrom};
+use strfmt::strfmt;
 use time::{at_utc, Timespec};
 
 // https://regex101.com/r/X9RoUY/4
@@ -21,13 +22,16 @@ struct Commit {
     pub message: String,
     pub author: String,
     pub date: String,
+    pub link: Option<String>,
 }
 
-impl TryFrom<(&git2::Repository, &git2::Oid)> for Commit {
+impl TryFrom<(&policy::Repository, &git2::Repository, &git2::Oid)> for Commit {
     type Error = Error;
-    fn try_from(tuple: (&git2::Repository, &git2::Oid)) -> Result<Self, Error> {
-        let (repository, oid) = tuple;
-        let commit = repository.find_commit(oid.to_owned())?;
+    fn try_from(
+        tuple: (&policy::Repository, &git2::Repository, &git2::Oid),
+    ) -> Result<Self, Error> {
+        let (repository, repo, oid) = tuple;
+        let commit = repo.find_commit(oid.to_owned())?;
         let author = match commit.author().name() {
             Some(author) => String::from(author),
             None => match commit.committer().name() {
@@ -44,16 +48,26 @@ impl TryFrom<(&git2::Repository, &git2::Oid)> for Commit {
             },
         };
 
-        let hash = oid.to_string();
+        let mut hash = oid.to_string();
         let date = at_utc(Timespec::new(commit.time().seconds(), 0))
             .strftime("%F")?
             .to_string();
+
+        let mut link = None;
+        if let Some(ref layout) = repository.link {
+            let mut vars = HashMap::new();
+            vars.insert(String::from("hash"), hash.to_owned());
+            link = Some(strfmt(layout, &vars)?);
+        }
+
+        hash.truncate(7);
 
         Ok(Commit {
             hash,
             message: message.to_owned(),
             author,
             date,
+            link,
         })
     }
 }
@@ -67,7 +81,6 @@ struct Kind {
 impl From<(String, Vec<Commit>)> for Kind {
     fn from(tuple: (String, Vec<Commit>)) -> Kind {
         let (name, commits) = tuple;
-
         Kind { name, commits }
     }
 }
@@ -94,7 +107,7 @@ impl TryFrom<(&HashMap<String, String>, &policy::Repository)> for Repository {
         let mut commits = HashMap::new();
         for oid in revwalk {
             let oid = oid?;
-            let commit = match Commit::try_from((&repo, &oid)) {
+            let commit = match Commit::try_from((repository, &repo, &oid)) {
                 Err(err) => {
                     error!("Could not parse the commit"; "hash" => oid.to_string(), "error" => err.to_string());
                     continue;
@@ -115,7 +128,12 @@ impl TryFrom<(&HashMap<String, String>, &policy::Repository)> for Repository {
             }
 
             let captures = re.captures(&message).unwrap();
-            let kind = String::from(captures.name("kind").unwrap().as_str());
+            let kind = String::from(
+                captures
+                    .name("kind")
+                    .expect("To have 'kind' group in the PATTERN regex")
+                    .as_str(),
+            );
             let scope = match captures.name("scope") {
                 Some(scope) => Some(String::from(scope.as_str())),
                 None => None,
@@ -139,8 +157,12 @@ impl TryFrom<(&HashMap<String, String>, &policy::Repository)> for Repository {
             }
 
             commits
-                .entry(String::from(kinds.get(&kind).unwrap().as_str()))
-                .or_insert_with(|| vec![])
+                .entry(String::from(
+                    kinds
+                        .get(&kind)
+                        .expect("To have 'kind' defined in repository's kinds")
+                        .as_str(),
+                )).or_insert_with(|| vec![])
                 .push(commit);
         }
 
