@@ -6,10 +6,8 @@ rust:
 - nightly
 matrix:
   allow_failures:
-  - rust:
-    - stable
-    - beta
-    - nightly
+  - rust: stable
+  - rust: beta
   fast_finish: true
 deploy:
   provider: releases

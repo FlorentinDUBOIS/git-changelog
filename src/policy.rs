@@ -12,6 +12,7 @@ pub struct Repository {
     pub path: PathBuf,
     pub scopes: Option<Vec<String>>,
     pub range: Option<String>,
+    pub link: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
