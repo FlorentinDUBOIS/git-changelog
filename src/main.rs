@@ -14,20 +14,18 @@ extern crate structopt_derive;
 
 use failure::Error;
 
-use structopt::StructOpt;
-
-use crate::cmd::{Command, Opt};
+use crate::cmd::{Args, Command};
 
 pub mod cmd;
 pub mod logger;
 pub mod parser;
 pub mod policy;
 
-pub fn main() -> Result<(), Error> {
-    let opt = Opt::from_args();
-    let _guard = logger::initialize(opt.verbose)?;
+#[paw::main]
+pub fn main(args: Args) -> Result<(), Error> {
+    let _guard = logger::initialize(args.verbose)?;
 
-    let result = match opt.cmd {
+    let result = match args.cmd {
         Some(cmd) => match cmd {
             Command::Generate { output, policy } => cmd::generate(&output, &policy),
             Command::Version { .. } => cmd::version(),

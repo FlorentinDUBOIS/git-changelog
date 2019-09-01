@@ -1,18 +1,20 @@
 //! # Command module
 //!
 //! The command module provide command line interface utilities.
-use crate::parser::{Parser, ParserImpl};
-use crate::policy::Policy;
-use failure::Error;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
+use failure::Error;
+
+use crate::parser::{Parser, ParserImpl};
+use crate::policy::Policy;
+
 include!("./version.rs");
 
 #[derive(StructOpt, Clone, Debug)]
-#[structopt(name = "changelog")]
-pub struct Opt {
+pub struct Args {
+    /// Increase log verbosity
     #[structopt(short = "v", parse(from_occurrences))]
     pub verbose: usize,
 
@@ -31,7 +33,10 @@ pub enum Command {
     Generate {
         /// Set the path of the git repository
         #[structopt(
-            long = "output", short = "o", default_value = "CHANGELOG.md", parse(from_os_str)
+            long = "output",
+            short = "o",
+            default_value = "CHANGELOG.md",
+            parse(from_os_str)
         )]
         output: PathBuf,
 

@@ -1,16 +1,19 @@
 //! # Parser module.
 //!
 //! The parser module provides traits and structures for generate changelog.
+use std::collections::HashMap;
+use std::convert::{From, TryFrom};
+
 use askama::Template;
-use crate::policy;
 use failure::Error;
 use git2;
 use regex::Regex;
 use slog_scope::{logger, scope};
-use std::collections::HashMap;
-use std::convert::{From, TryFrom};
-use strfmt::strfmt;
 use time::{at_utc, Timespec};
+
+use strfmt::strfmt;
+
+use crate::policy;
 
 // https://regex101.com/r/X9RoUY/4
 const PATTERN: &str =
@@ -162,7 +165,8 @@ impl TryFrom<(&HashMap<String, String>, &policy::Repository)> for Repository {
                         .get(&kind)
                         .expect("To have 'kind' defined in repository's kinds")
                         .as_str(),
-                )).or_insert_with(|| vec![])
+                ))
+                .or_insert_with(|| vec![])
                 .push(commit);
         }
 
@@ -179,7 +183,7 @@ impl TryFrom<(&HashMap<String, String>, &policy::Repository)> for Repository {
 }
 
 #[derive(Template, Debug, Clone)]
-#[template(path = "changelog.md")]
+#[template(path = "changelog.md", escape = "none")]
 struct Changelog {
     pub repositories: Vec<Repository>,
 }

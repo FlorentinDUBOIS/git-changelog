@@ -2,17 +2,14 @@
 //!
 //! The build module create rust files at build time
 //! in order to inject some source code.
-use askama;
-use failure::{Error, ResultExt};
-use git2::Repository;
 use std::fs::File;
 use std::io::Write;
+
+use failure::{Error, ResultExt};
+use git2::Repository;
 use time::now_utc;
 
 pub fn main() -> Result<(), Error> {
-    // Transpile templates if they changed
-    askama::rerun_if_templates_changed();
-
     // Load the current git repository and retrieve the last commit using the
     // HEAD current reference
     let repository = Repository::discover(".").context("Expect to have a git repository")?;
