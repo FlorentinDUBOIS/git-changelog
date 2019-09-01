@@ -12,7 +12,7 @@ install one, please use [rustup](https://rustup.rs/).
 You can install the changelog using the following command:
 
 ```sh
-$ cargo +nightly install --git https://github.com/FlorentinDUBOIS/changelog
+$ cargo install --git https://github.com/FlorentinDUBOIS/changelog
 ```
 
 The binary is placed under `~/.cargo/bin`.
@@ -28,7 +28,7 @@ git clone git@github.com:FlorentinDUBOIS/changelog.git
 Now, compile the changelog:
 
 ```sh
-cargo +nightly build --release
+cargo build --release
 ```
 
 You can find the released binary in the `target/release` folder.

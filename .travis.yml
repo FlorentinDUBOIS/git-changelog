@@ -1,13 +1,12 @@
 language: rust
 cache: cargo
 rust:
-- stable
-- beta
-- nightly
+  - stable
+  - beta
+  - nightly
 matrix:
   allow_failures:
-  - rust: stable
-  - rust: beta
+    - rust: nightly
   fast_finish: true
 deploy:
   provider: releases
