@@ -1,0 +1,66 @@
+# Kinds are based on https://github.com/angular/angular/blob/master/CONTRIBUTING.md#type
+#
+# When a commit match the kind, it will be pushed in the related rubrics.
+# If it not match, the commit will not be render on the CHANGELOG.md.
+#
+# For the changelog project, there are multiples kinds defined:
+#
+# - build: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
+# - ci: Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
+# - docs: Documentation only changes
+# - feat: A new feature
+# - fix: A bug fix
+# - perf: A code change that improves performance
+# - refactor: A code change that neither fixes a bug nor adds a feature
+# - style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+# - test: Adding missing tests or correcting existing tests
+# - infra: A code change related to the infrastructure
+# - chore: Task that will be done
+[kinds]
+build = "Build improvements"
+ci = "Continuous integration improvements"
+docs = "Documentation enhancements"
+feat = "Features"
+fix = "Fix changes"
+perf = "Performance improvements"
+refactor = "Refactor enhancements"
+style = "Style changes"
+test = "Unit test changes"
+infra = "Infrastructure changes"
+chore = "Chore tasks"
+
+# Repositories is an array of git repository that will be used in order to render
+# the CHANGELOG.md.
+[[repositories]]
+# Name to give to the repository in the CHANGELOG.md
+name = "Changelog"
+
+# Path to the git repository
+path = "."
+
+# Scopes are based on https://github.com/angular/angular/blob/master/CONTRIBUTING.md#scope
+#
+# If scopes are omitted, there is no check on it, so all scopes are accepted.
+#
+# Scopes are parts of the software which can be impacted during the development.
+scopes = [
+    "logger",
+    "parser",
+    "configuration",
+    "library",
+]
+
+# The range parameter allow you to select which commits to render the CHANGELOG.md.
+# The left-hand commit will be hidden and the right-hand commit pushed.
+#
+# if range is omited all history will be used.
+#
+# example:
+#
+# range = "820305f..HEAD"
+
+# Link allow to directly retrieve commit details by providing a link pointing to
+# them.
+#
+# Use {hash} to select the place where the commit's hash should be inject
+link = "https://github.com/FlorentinDUBOIS/changelog/commit/{hash}"

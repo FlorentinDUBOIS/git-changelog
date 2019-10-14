@@ -1,0 +1,41 @@
+[package]
+name = "changelog"
+description = "Generate a changelog using the git commit history"
+version = "0.1.0"
+authors = ["Florentin DUBOIS <contact@florentin-dubois.fr>"]
+build = "build.rs"
+edition = "2018"
+
+[dependencies]
+askama = "0.8.0"
+failure = "0.1.6"
+git2 = "0.10.1"
+structopt = { version = "0.3.3", features = ["paw"] }
+time = "0.1.42"
+config = "0.9.3"
+serde = { version = "1.0.101", features = ["derive"] }
+slog = "2.5.2"
+slog-term = "2.4.1"
+slog-async = "2.3.0"
+slog-scope = "4.1.2"
+regex = "1.3.1"
+strfmt = "0.1.6"
+paw = "1.0.0"
+
+[build-dependencies]
+askama = "0.8.0"
+failure = "0.1.6"
+git2 = "0.10.1"
+time = "0.1.42"
+
+[badges]
+travis-ci = { repository = "FlorentinDUBOIS/changelog", branch = "master" }
+
+[profile.release]
+lto = true
+
+[profile.bench]
+lto = true
+
+[features]
+default = []

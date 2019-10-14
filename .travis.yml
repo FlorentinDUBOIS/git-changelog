@@ -1,0 +1,18 @@
+language: rust
+cache: cargo
+rust:
+  - stable
+  - beta
+  - nightly
+matrix:
+  allow_failures:
+    - rust: nightly
+  fast_finish: true
+deploy:
+  provider: releases
+  api_key:
+    secure: SsqLsSjx6VRFLGltpUvFyvNyD3tOtckEtkQtZNnquncTcAiHWYtYa0/M7H8iek3j03HT0HC/Z5FNfFASquNGUWs26fUq9rq4k/HxfyVQ2RJCh0RACyQobaZUgDUUDMybN4RIL3PcI2uHF6fzGcxx5jGQIIcoHhZGIXoN1HbJYU0gb+T9oyDw3AmPLCKOlTNGXtknGLR5MQqTiJHwK84CWhnUu52TcMFD1yHGgxv5HJySp+jXhERgbG9+AdO0Zhh2Q7oTgQpOnKi/uTccvchBDxFIQypd1YSVzpMQ4HeZwefybnQtKH4Eyql2rAdgFTXK1yHc1ziYfrVf2s1lw4PCPkhyyBFkMU4YEAeoIBHZ/QOaQSz4kbkjfedSRfUDr0lspYHTDFeFjikuJbL4tO7NUsmrzOX+5P5zfY7OwYqi1eWoc09paQplvm7un1JYoBuQLp06TEYJwKQ57njZ04HOXlP7oPSSAWQfRgJxsdzNEzARmcfUV03mOTlxHF1JVi+3MhwOykobA6LgkVlBU3QsjWfbEkxvfu+te1BDK4tMeVNmjnLnI1LjqFBJrZP+9TQiVKmcb4jXFfZu51MG/PGJJTN1EwXE9Gtz94zVr5UVXuFYkiOuoBzdl+RSBSm9+Vv1AhO1Gp7L05XNYmP0cM5aUqTQJOrHm6bXubQd4KMMGcE=
+  on:
+    tags: true
+    master: true
+    repo: FlorentinDUBOIS/changelog
