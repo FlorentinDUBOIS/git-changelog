@@ -4,6 +4,12 @@ rust:
   - stable
   - beta
   - nightly
+before_script:
+  - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.0/install.sh | bash
+  - source $HOME/.nvm/nvm.sh
+  - nvm install lts/erbium
+  - npm install
+  - npm run build
 matrix:
   allow_failures:
     - rust: nightly

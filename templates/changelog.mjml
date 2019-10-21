@@ -1,0 +1,48 @@
+<mjml>
+	<mj-body>
+		<mj-section background-color="#1976d2">
+			<mj-column>
+				<mj-text font-style="italic" font-size="20px" color="#ffffff">Changelog</mj-text>
+			</mj-column>
+		</mj-section>
+
+		<mj-raw>{% for repository in repositories %}</mj-raw>
+		<mj-section background-color="#fafafa">
+			<mj-column>
+				<mj-text font-style="italic" font-size="20px" color="#626262">{{ repository.name }}</mj-text>
+				<mj-raw>{% for tag in repository.tags %}</mj-raw>
+				<mj-text font-size="18px" color="#626262">{{ tag.name }}</mj-text>
+				<mj-raw>{% for (kind, commits) in tag.commits %}</mj-raw>
+				<mj-text font-style="bold" color="#626262">{{ kind }}</mj-text>
+				<mj-raw>{% for commit in commits %}</mj-raw>
+				<mj-raw>{% match commit.link -%}</mj-raw>
+				<mj-raw>{%- when Some with (link) -%}</mj-raw>
+				<mj-text color="#626262">
+					{{ commit.date }} - <a href="{{ link }}" target="_blank">{{ commit.hash }}</a> - {{ commit.message }} - {{ commit.author }}
+				</mj-text>
+				<mj-raw>{%- when None -%}</mj-raw>
+				<mj-text color="#626262">
+					{{ commit.date }} - {{ commit.hash }} - {{ commit.message }} - {{ commit.author }}
+				</mj-text>
+				<mj-raw>{% endmatch -%}</mj-raw>
+				<mj-raw>{% endfor %}</mj-raw>
+                <mj-raw>{% endfor %}</mj-raw>
+                <mj-raw>{% endfor %}</mj-raw>
+
+                        <mj-raw>{% if !loop.last %}</mj-raw>
+        <mj-divider border-width="1px" border-style="dashed" border-color="lightgrey" />
+        <mj-raw>{% endif %}</mj-raw>
+			</mj-column>
+		</mj-section>
+
+		<mj-raw>{% endfor %}</mj-raw>
+
+		<mj-section background-color="#f5f5f5">
+			<mj-column>
+				<mj-text>
+					Generated with 💖 by <a href="https://github.com/FlorentinDUBOIS/changelog" target="_blank">changelog</a>.
+				</mj-text>
+			</mj-column>
+		</mj-section>
+	</mj-body>
+</mjml>

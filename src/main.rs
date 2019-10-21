@@ -11,11 +11,11 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::rc::Rc;
 
-use failure::Error;
+use failure::{Error, ResultExt};
 use structopt::StructOpt;
 
 use crate::conf::Configuration;
-use crate::parser::Changelog;
+use crate::parser::{Changelog, HTMLChangelog, MarkdownChangelog};
 use crate::version::{BUILD_DATE, GITHASH, PROFILE};
 
 // library module should be declare first as it expose macros used by other modules
@@ -45,8 +45,12 @@ pub struct Args {
     #[structopt(short = "c", long = "config", default_value = "changelog.toml")]
     pub config: PathBuf,
 
+    /// Output using the specified format (available formats are: html or markdown)
+    #[structopt(short = "f", long = "format", default_value = "markdown")]
+    pub format: String,
+
     /// Set the output destination
-    #[structopt(short = "o", long = "output", default_value = "CHANGELOG.md")]
+    #[structopt(short = "o", long = "output", default_value = "CHANGELOG")]
     pub output: PathBuf,
 }
 
@@ -72,7 +76,7 @@ fn main(args: Args) -> Result<(), Error> {
         return ok!();
     }
 
-    let conf = match Configuration::try_from(args.config) {
+    let conf = match Configuration::try_from(args.config.to_owned()) {
         Ok(conf) => Rc::new(conf),
         Err(err) => {
             return err!("could not load configuration, {}", err);
@@ -92,11 +96,27 @@ fn main(args: Args) -> Result<(), Error> {
         }
     };
 
-    let mut file = File::create(args.output)?;
+    let (extension, content) = match args.format.as_str() {
+        "html" => ("html", format!("{}", HTMLChangelog::from(changelog))),
+        "markdown" => ("md", format!("{}", MarkdownChangelog::from(changelog))),
+        format => {
+            crit!("could not use the given value for formatting, the format '{}' is not yet implemented", format);
+            return err!("could not use the given value for formatting, the format '{}' is not yet implemented", format);
+        }
+    };
 
-    file.write_all(format!("{}\n", changelog).as_bytes())?;
-    file.flush()?;
-    file.sync_all()?;
+    let mut output = args.output;
+
+    output.set_extension(extension);
+    let mut file = File::create(output.to_owned())
+        .with_context(|err| format!("could not create file '{:?}', {}", output, err))?;
+
+    file.write_all(content.as_bytes())
+        .with_context(|err| format!("could not write content, {}", err))?;
+    file.flush()
+        .with_context(|err| format!("could not flush content on disk, {}", err))?;
+    file.sync_all()
+        .with_context(|err| format!("could not sync content on disk, {}", err))?;
 
     ok!()
 }

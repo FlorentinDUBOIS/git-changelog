@@ -1,0 +1,19 @@
+{
+  "name": "changelog",
+  "version": "0.1.0",
+  "description": "Generate a changelog using the git commit history",
+  "private": true,
+  "scripts": {
+    "dev": "mjml -w templates/changelog.mjml -o templates/changelog.html",
+    "build": "mjml templates/changelog.mjml -o templates/changelog.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FlorentinDUBOIS/changelog.git"
+  },
+  "author": "Florentin DUBOIS <contact@florentin-dubois.fr>",
+  "license": "MIT",
+  "devDependencies": {
+    "mjml": "^4.5.1"
+  }
+}

@@ -131,23 +131,23 @@ impl TryFrom<(&HashMap<String, String>, &conf::Repository)> for Repository {
             .tag_names(None)
             .with_context(|err| format!("could not retrieve git tags, {}", err))?
             .iter()
-            {
-                let object = repo
-                    .revparse_single(tag.expect("tag to be written in utf-8 compliant format"))
-                    .with_context(|err| format!("could not retrieve object for tag, {}", err))?;
+        {
+            let object = repo
+                .revparse_single(tag.expect("tag to be written in utf-8 compliant format"))
+                .with_context(|err| format!("could not retrieve object for tag, {}", err))?;
 
-                let tag = match object.to_owned().into_tag() {
-                    Ok(tag) => tag,
-                    Err(_) => {
-                        let mut hash = object.id().to_string();
-                        hash.truncate(7);
-                        warn!("could not cast object into tag"; "hash" => hash);
-                        continue;
-                    }
-                };
+            let tag = match object.to_owned().into_tag() {
+                Ok(tag) => tag,
+                Err(_) => {
+                    let mut hash = object.id().to_string();
+                    hash.truncate(7);
+                    warn!("could not cast object into tag"; "hash" => hash);
+                    continue;
+                }
+            };
 
-                tags.insert(tag.target_id().to_string(), tag);
-            }
+            tags.insert(tag.target_id().to_string(), tag);
+        }
 
         let mut revwalk = repo
             .revwalk()
@@ -192,7 +192,9 @@ impl TryFrom<(&HashMap<String, String>, &conf::Repository)> for Repository {
                 continue;
             }
 
-            let captures = re.captures(&message).expect("captures to exists in PATTERN regex");
+            let captures = re
+                .captures(&message)
+                .expect("captures to exists in PATTERN regex");
             let kind = String::from(
                 captures
                     .name("kind")
@@ -234,9 +236,10 @@ impl TryFrom<(&HashMap<String, String>, &conf::Repository)> for Repository {
                 .push(commit);
 
             if let Some(tag) = tags.get(&oid.to_string()) {
-                repository
-                    .tags
-                    .push(Tag::from((String::from(tag.name().expect("tag name to be utf-8 compliant")), commits)));
+                repository.tags.push(Tag::from((
+                    String::from(tag.name().expect("tag name to be utf-8 compliant")),
+                    commits,
+                )));
 
                 commits = HashMap::new();
             }
@@ -254,8 +257,7 @@ impl TryFrom<(&HashMap<String, String>, &conf::Repository)> for Repository {
     }
 }
 
-#[derive(Template, Default, Clone, Debug)]
-#[template(path = "changelog.md", escape = "none")]
+#[derive(Default, Clone, Debug)]
 pub struct Changelog {
     pub repositories: Vec<Repository>,
 }
@@ -278,5 +280,33 @@ impl TryFrom<Rc<Configuration>> for Changelog {
         }
 
         ok!(changelog)
+    }
+}
+
+#[derive(Template, Default, Clone, Debug)]
+#[template(path = "changelog.html")]
+pub struct HTMLChangelog {
+    pub repositories: Vec<Repository>,
+}
+
+impl From<Changelog> for HTMLChangelog {
+    fn from(changelog: Changelog) -> Self {
+        Self {
+            repositories: changelog.repositories,
+        }
+    }
+}
+
+#[derive(Template, Default, Clone, Debug)]
+#[template(path = "changelog.md", escape = "none")]
+pub struct MarkdownChangelog {
+    pub repositories: Vec<Repository>,
+}
+
+impl From<Changelog> for MarkdownChangelog {
+    fn from(changelog: Changelog) -> Self {
+        Self {
+            repositories: changelog.repositories,
+        }
     }
 }
