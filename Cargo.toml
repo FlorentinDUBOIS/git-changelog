@@ -1,5 +1,5 @@
 [package]
-name = "changelog"
+name = "git-changelog"
 description = "Generate a changelog using the git commit history"
 version = "0.1.0"
 authors = ["Florentin DUBOIS <florentin.dubois@hey.com>"]
@@ -25,9 +25,6 @@ paw = "^1.0.0"
 askama = "^0.10.5"
 git2 = "^0.13.15"
 chrono = "^0.4.19"
-
-[badges]
-travis-ci = { repository = "FlorentinDUBOIS/changelog", branch = "master" }
 
 [profile.release]
 lto = true

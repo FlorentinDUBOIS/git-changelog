@@ -31,12 +31,17 @@ pub fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             Utc::now().to_rfc3339(),
         )
         .as_bytes(),
-    )?;
-    file.write(format!("pub(crate) const GITHASH: &str = \"{}\";\n", identifier).as_bytes())?;
-    file.write(format!("pub(crate) const PROFILE: &str = \"{}\";\n", profile).as_bytes())?;
+    )
+        .map_err(|err| format!("could not write build date in file 'src/version.rs', {}", err))?;
+    file.write(format!("pub(crate) const GITHASH: &str = \"{}\";\n", identifier).as_bytes())
+        .map_err(|err| format!("could not write githash in file 'src/version.rs', {}", err))?;
+    file.write(format!("pub(crate) const PROFILE: &str = \"{}\";\n", profile).as_bytes())
+        .map_err(|err| format!("could not write profile in file 'src/version.rs', {}", err))?;
 
-    file.flush()?;
-    file.sync_all()?;
+    file.flush()
+        .map_err(|err| format!("could not flush file 'src/version.rs', {}", err))?;
+    file.sync_all()
+        .map_err(|err| format!("could not sync file 'src/version.rs', {}", err))?;
 
     Ok(())
 }

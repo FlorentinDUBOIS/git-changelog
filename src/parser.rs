@@ -72,7 +72,7 @@ impl TryFrom<(&conf::Repository, &git::Commit<'_>)> for Commit {
 
         Ok(Self {
             hash,
-            message: message.to_owned(),
+            message,
             author,
             date,
             link,
@@ -234,7 +234,7 @@ impl TryFrom<(&HashMap<String, String>, &conf::Repository)> for Repository {
                         .expect("To have 'kind' defined in repository's kinds")
                         .as_str(),
                 ))
-                .or_insert_with(|| vec![])
+                .or_insert_with(Vec::new)
                 .push(commit);
 
             if let Some(tag) = tags.get(&oid.to_string()) {
