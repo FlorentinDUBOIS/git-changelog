@@ -9,7 +9,6 @@ use slog_scope::{set_global_logger, GlobalLoggerGuard as Guard};
 use slog_term::{FullFormat, TermDecorator};
 
 /// Initialize the logger. Set the verbosity.
-#[must_use]
 pub fn initialize(verbose: usize) -> Guard {
     let term_decorator = TermDecorator::new().build();
     let term_drain = FullFormat::new(term_decorator).build().fuse();
@@ -20,7 +19,6 @@ pub fn initialize(verbose: usize) -> Guard {
     let level = Level::from_usize(level).unwrap_or(Level::Info);
 
     let drain = LevelFilter::new(term_drain, level).fuse();
-    let guard = set_global_logger(Logger::root(drain, slog_o!()));
 
-    guard
+    set_global_logger(Logger::root(drain, slog_o!()))
 }

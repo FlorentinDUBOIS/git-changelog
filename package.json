@@ -1,5 +1,5 @@
 {
-  "name": "changelog",
+  "name": "git-changelog",
   "version": "0.1.0",
   "description": "Generate a changelog using the git commit history",
   "private": true,
@@ -9,9 +9,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/FlorentinDUBOIS/changelog.git"
+    "url": "https://github.com/FlorentinDUBOIS/git-changelog.git"
   },
-  "author": "Florentin DUBOIS <contact@florentin-dubois.fr>",
+  "author": "Florentin DUBOIS <florentin.dubois@hey.com>",
   "license": "MIT",
   "devDependencies": {
     "mjml": "^4.8.1"

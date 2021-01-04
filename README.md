@@ -1,31 +1,28 @@
-# Changelog [![Build Status](https://travis-ci.org/FlorentinDUBOIS/changelog.svg?branch=master)](https://travis-ci.org/FlorentinDUBOIS/changelog)
+# Git changelog [![Build Status](https://travis-ci.org/FlorentinDUBOIS/changelog.svg?branch=master)](https://travis-ci.org/FlorentinDUBOIS/changelog)
 
 > Generate a changelog using the git commit history
 
 ## Getting started
 
-To compile this application, you need a valid rust environment. If you have to
-install one, please use [rustup](https://rustup.rs/).
-
-### Installing using cargo
-
-You can install the changelog using the following command:
-
-```sh
-$ cargo install --git https://github.com/FlorentinDUBOIS/changelog
-```
-
-The binary is placed under `~/.cargo/bin`.
+To compile this application, you need an environment with rust and node available. 
+If you have to install one of them, you should take a look at [rustup](https://rustup.rs/)
+and [nvm](https://github.com/nvm-sh/nvm).
 
 ### Compiling from sources
 
-Firstly, get the source code:
+Firstly, we will clone the repository using the following command:
 
 ```sh
-git clone git@github.com:FlorentinDUBOIS/changelog.git
+git clone git@github.com:FlorentinDUBOIS/git-changelog.git
 ```
 
-Now, compile the changelog:
+Then, we will need to compile the html template using npm:
+
+```shell
+npm i && npm run build
+```
+
+Finaly, compile the application
 
 ```sh
 cargo build --release
@@ -116,11 +113,11 @@ link = "https://github.com/FlorentinDUBOIS/changelog/commit/{hash}"
 In order to get help the flag `--help` will display the help about the current command.
 
 ```sh
-$ changelog --help
-changelog 0.1.0
+$ git changelog -h
+git-changelog 0.1.0
 
 USAGE:
-    changelog [FLAGS] [OPTIONS]
+    git-changelog [FLAGS] [OPTIONS]
 
 FLAGS:
     -t, --check      Check if the configuration is healthy
@@ -130,19 +127,18 @@ FLAGS:
 
 OPTIONS:
     -c, --config <config>    Use the specified configuration file [default: changelog.toml]
-    -o, --output <output>    Set the output destination [default: CHANGELOG.md]
+    -f, --format <format>    Output using the specified format (available formats are: html or markdown) [default: markdown]
+    -o, --output <output>    Set the output destination [default: CHANGELOG]
+
 ```
 
 To generate a `CHANGELOG.md` file, you will need a `changelog.toml` file,
 you can find an example in this repository.
 
 ```sh
-$ changelog -vvvv
-Aug 01 10:26:52.844 INFO Skip merge commit, hash: f436d7fadf46e89e7ddc64646220d5834bdb341c, repository: Changelog
-Aug 01 10:26:52.896 INFO Skip merge commit, hash: e326eb9920b5f962307df7169a91acb24adaefca, repository: Changelog
-Aug 01 10:26:52.953 INFO Skip merge commit, hash: 0550a53fb314ce5c74f68ca7c42aa26953a8b3c0, repository: Changelog
-Aug 01 10:26:53.168 WARN Scope is not contained in provided scopes, scope: generate, hash: 2570a9809a60e7c5a8259fc73e7ca41d6566d552, repository: Changelog
-Aug 01 10:26:53.213 WARN Scope is not contained in provided scopes, scope: generate, hash: 14ab27767bef9f8eb933f85638545c02bb4bc3aa, repository: Changelog
+$ git changelog -vvvvvvv
+Jan 04 16:21:57.970 INFO Skip merge commit, hash: 8a42a16
+Jan 04 16:21:57.973 INFO Skip merge commit, hash: a48267d
 ```
 
 ### Tags support
@@ -152,7 +148,7 @@ There is nothing special to do in order to make git tags working. There is only 
 To create a git tag, you should use the following command:
 
 ```sh
-$ git tag -a [-s] vX.Y.Z
+git tag -a [-s] vX.Y.Z
 ```
 
 This will open an editor to add a message on the git tag.
