@@ -2,12 +2,9 @@
 //!
 //! The configuration module handle the changelog.toml file
 
-use std::collections::HashMap;
-use std::convert::TryFrom;
-use std::path::PathBuf;
+use std::{collections::HashMap, convert::TryFrom, error::Error, path::PathBuf};
 
 use config::{Config, File};
-use failure::{Error, ResultExt};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -26,16 +23,16 @@ pub struct Configuration {
 }
 
 impl TryFrom<PathBuf> for Configuration {
-    type Error = Error;
+    type Error = Box<dyn Error + Send + Sync>;
 
     fn try_from(path: PathBuf) -> Result<Self, Self::Error> {
         let mut conf = Config::default();
 
         conf.merge(File::from(path).required(true))
-            .with_context(|err| format!("could not configure the file constraint, {}", err))?;
+            .map_err(|err| format!("could not configure the file constraint, {}", err))?;
 
-        ok!(conf.try_into::<Self>().with_context(|err| {
-            format!("could not cast data structure into configuration, {}", err)
-        })?)
+        Ok(conf
+            .try_into::<Self>()
+            .map_err(|err| format!("could not cast data structure into configuration, {}", err))?)
     }
 }

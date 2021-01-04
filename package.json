@@ -14,6 +14,6 @@
   "author": "Florentin DUBOIS <contact@florentin-dubois.fr>",
   "license": "MIT",
   "devDependencies": {
-    "mjml": "^4.5.1"
+    "mjml": "^4.8.1"
   }
 }

@@ -1,27 +1,17 @@
 //! # Changelog
 //!
 //! Generate a changelog using the git commit history
+use std::{convert::TryFrom, error::Error, fs::File, io::Write, path::PathBuf, rc::Rc};
 
-#[macro_use]
-extern crate slog_scope;
-
-use std::convert::TryFrom;
-use std::fs::File;
-use std::io::Write;
-use std::path::PathBuf;
-use std::rc::Rc;
-
-use failure::{Error, ResultExt};
+use slog_scope::{crit, debug, warn};
 use structopt::StructOpt;
 
-use crate::conf::Configuration;
-use crate::parser::{Changelog, HTMLChangelog, MarkdownChangelog};
-use crate::version::{BUILD_DATE, GITHASH, PROFILE};
+use crate::{
+    conf::Configuration,
+    parser::{Changelog, HTMLChangelog, MarkdownChangelog},
+    version::{BUILD_DATE, GITHASH, PROFILE},
+};
 
-// library module should be declare first as it expose macros used by other modules
-// https://doc.rust-lang.org/1.2.0/book/macros.html#scoping-and-macro-import/export
-#[macro_use]
-mod lib;
 mod conf;
 mod logger;
 mod parser;
@@ -30,7 +20,7 @@ mod version;
 #[derive(StructOpt, Clone, Debug)]
 pub struct Args {
     /// Prints version information
-    #[structopt(short = "V", long = "version")]
+    #[structopt(short = "V", long = "version", global = true)]
     pub version: bool,
 
     /// Check if the configuration is healthy
@@ -38,11 +28,16 @@ pub struct Args {
     pub check: bool,
 
     /// Increase the log verbosity
-    #[structopt(short = "v", parse(from_occurrences))]
+    #[structopt(short = "v", global = true, parse(from_occurrences))]
     pub verbose: usize,
 
     /// Use the specified configuration file
-    #[structopt(short = "c", long = "config", default_value = "changelog.toml")]
+    #[structopt(
+        short = "c",
+        long = "config",
+        global = true,
+        default_value = "changelog.toml"
+    )]
     pub config: PathBuf,
 
     /// Output using the specified format (available formats are: html or markdown)
@@ -55,7 +50,7 @@ pub struct Args {
 }
 
 #[paw::main]
-fn main(args: Args) -> Result<(), Error> {
+fn main(args: Args) -> Result<(), Box<dyn Error + Send + Sync>> {
     let _guard = logger::initialize(args.verbose);
 
     if PROFILE == "debug" {
@@ -73,13 +68,13 @@ fn main(args: Args) -> Result<(), Error> {
         version += &format!("{} profile {}\n", env!("CARGO_PKG_NAME"), PROFILE);
 
         println!("{}", version);
-        return ok!();
+        return Ok(());
     }
 
     let conf = match Configuration::try_from(args.config.to_owned()) {
         Ok(conf) => Rc::new(conf),
         Err(err) => {
-            return err!("could not load configuration, {}", err);
+            return Err(format!("could not load configuration, {}", err).into());
         }
     };
 
@@ -92,7 +87,7 @@ fn main(args: Args) -> Result<(), Error> {
         Ok(changelog) => changelog,
         Err(err) => {
             crit!("could not generate the changelog"; "error" => err.to_string());
-            return err!("could not generate the changelog, {}", err);
+            return Err(format!("could not generate the changelog, {}", err).into());
         }
     };
 
@@ -101,7 +96,7 @@ fn main(args: Args) -> Result<(), Error> {
         "markdown" => ("md", format!("{}", MarkdownChangelog::from(changelog))),
         format => {
             crit!("could not use the given value for formatting, the format '{}' is not yet implemented", format);
-            return err!("could not use the given value for formatting, the format '{}' is not yet implemented", format);
+            return Err(format!("could not use the given value for formatting, the format '{}' is not yet implemented", format).into());
         }
     };
 
@@ -109,14 +104,14 @@ fn main(args: Args) -> Result<(), Error> {
 
     output.set_extension(extension);
     let mut file = File::create(output.to_owned())
-        .with_context(|err| format!("could not create file '{:?}', {}", output, err))?;
+        .map_err(|err| format!("could not create file '{:?}', {}", output, err))?;
 
     file.write_all(content.as_bytes())
-        .with_context(|err| format!("could not write content, {}", err))?;
+        .map_err(|err| format!("could not write content, {}", err))?;
     file.flush()
-        .with_context(|err| format!("could not flush content on disk, {}", err))?;
+        .map_err(|err| format!("could not flush content on disk, {}", err))?;
     file.sync_all()
-        .with_context(|err| format!("could not sync content on disk, {}", err))?;
+        .map_err(|err| format!("could not sync content on disk, {}", err))?;
 
-    ok!()
+    Ok(())
 }

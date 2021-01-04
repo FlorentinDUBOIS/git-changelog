@@ -2,20 +2,16 @@
 //!
 //! The parser module will parse the git commit history to build changelog
 
-use std::collections::HashMap;
-use std::convert::TryFrom;
-use std::rc::Rc;
+use std::{collections::HashMap, convert::TryFrom, error::Error, rc::Rc};
 
 use askama::Template;
-use failure::{Error, ResultExt};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use git2 as git;
 use regex::Regex;
-use time::{at_utc, Timespec};
-
+use slog_scope::{error, info, warn};
 use strfmt::strfmt;
 
-use crate::conf;
-use crate::conf::Configuration;
+use crate::conf::{self, Configuration};
 
 // https://regex101.com/r/X9RoUY/4
 const PATTERN: &str =
@@ -31,7 +27,7 @@ pub struct Commit {
 }
 
 impl TryFrom<(&conf::Repository, &git::Commit<'_>)> for Commit {
-    type Error = Error;
+    type Error = Box<dyn Error + Send + Sync>;
 
     fn try_from(tuple: (&conf::Repository, &git::Commit<'_>)) -> Result<Self, Self::Error> {
         let (conf, commit) = tuple;
@@ -39,7 +35,7 @@ impl TryFrom<(&conf::Repository, &git::Commit<'_>)> for Commit {
             Some(author) => String::from(author),
             None => match commit.committer().name() {
                 Some(committer) => String::from(committer),
-                None => return err!("No such author or commiter"),
+                None => return Err("No such author or commiter".into()),
             },
         };
 
@@ -47,14 +43,18 @@ impl TryFrom<(&conf::Repository, &git::Commit<'_>)> for Commit {
             Some(summary) => String::from(summary),
             None => match commit.message() {
                 Some(message) => String::from(message),
-                None => return err!("No such message or summary"),
+                None => return Err("No such message or summary".into()),
             },
         };
 
         let mut hash = commit.id().to_string();
-        let date = at_utc(Timespec::new(commit.time().seconds(), 0))
-            .strftime("%F")?
-            .to_string();
+        let date = DateTime::<Utc>::from_utc(
+            NaiveDateTime::from_timestamp(commit.time().seconds(), 0),
+            Utc,
+        )
+        .date()
+        .format("%F")
+        .to_string();
 
         let mut link = None;
         if let Some(ref layout) = conf.link {
@@ -64,13 +64,13 @@ impl TryFrom<(&conf::Repository, &git::Commit<'_>)> for Commit {
 
             link = Some(
                 strfmt(layout, &vars)
-                    .with_context(|err| format!("could not format commit link, {}", err))?,
+                    .map_err(|err| format!("could not format commit link, {}", err))?,
             );
         }
 
         hash.truncate(7);
 
-        ok!(Self {
+        Ok(Self {
             hash,
             message: message.to_owned(),
             author,
@@ -110,12 +110,12 @@ impl From<String> for Repository {
 }
 
 impl TryFrom<(&HashMap<String, String>, &conf::Repository)> for Repository {
-    type Error = Error;
+    type Error = Box<dyn Error + Send + Sync>;
 
     fn try_from(tuple: (&HashMap<String, String>, &conf::Repository)) -> Result<Self, Self::Error> {
         let (kinds, conf) = tuple;
         let mut repository = Repository::from(conf.name.to_owned());
-        let repo = git::Repository::discover(&conf.path).with_context(|err| {
+        let repo = git::Repository::discover(&conf.path).map_err(|err| {
             format!(
                 "could not retrieve git repository at '{:?}', {}",
                 conf.path, err
@@ -129,12 +129,12 @@ impl TryFrom<(&HashMap<String, String>, &conf::Repository)> for Repository {
         let mut tags = HashMap::new();
         for tag in repo
             .tag_names(None)
-            .with_context(|err| format!("could not retrieve git tags, {}", err))?
+            .map_err(|err| format!("could not retrieve git tags, {}", err))?
             .iter()
         {
             let object = repo
                 .revparse_single(tag.expect("tag to be written in utf-8 compliant format"))
-                .with_context(|err| format!("could not retrieve object for tag, {}", err))?;
+                .map_err(|err| format!("could not retrieve object for tag, {}", err))?;
 
             let tag = match object.to_owned().into_tag() {
                 Ok(tag) => tag,
@@ -151,34 +151,36 @@ impl TryFrom<(&HashMap<String, String>, &conf::Repository)> for Repository {
 
         let mut revwalk = repo
             .revwalk()
-            .with_context(|err| format!("could create a walker on git history, {}", err))?;
+            .map_err(|err| format!("could create a walker on git history, {}", err))?;
 
         match &conf.range {
             Some(range) => {
                 revwalk
                     .push_range(&range)
-                    .with_context(|err| format!("could not parse commit range, {}", err))?;
+                    .map_err(|err| format!("could not parse commit range, {}", err))?;
             }
             None => {
                 revwalk
                     .push_head()
-                    .with_context(|err| format!("could not push HEAD commit, {}", err))?;
+                    .map_err(|err| format!("could not push HEAD commit, {}", err))?;
             }
         }
 
-        revwalk.set_sorting(git::Sort::TIME | git::Sort::REVERSE);
+        revwalk
+            .set_sorting(git::Sort::TIME | git::Sort::REVERSE)
+            .map_err(|err| format!("failed to sort git commit history, {}", err))?;
 
         let mut commits = HashMap::new();
         for oid in revwalk {
             let oid =
-                oid.with_context(|err| format!("could not retrieve object identifier, {}", err))?;
+                oid.map_err(|err| format!("could not retrieve object identifier, {}", err))?;
 
             let commit = repo
                 .find_commit(oid)
-                .with_context(|err| format!("could not retrieve commit '{}', {}", oid, err))?;
+                .map_err(|err| format!("could not retrieve commit '{}', {}", oid, err))?;
 
             let commit = Commit::try_from((conf, &commit))
-                .with_context(|err| format!("could not parse commit '{}', {}", oid, err))?;
+                .map_err(|err| format!("could not parse commit '{}', {}", oid, err))?;
 
             let Commit { hash, message, .. } = commit.to_owned();
             if message.starts_with("Merge pull request") || message.starts_with("Merge branch") {
@@ -253,7 +255,7 @@ impl TryFrom<(&HashMap<String, String>, &conf::Repository)> for Repository {
 
         repository.tags.reverse();
 
-        ok!(repository)
+        Ok(repository)
     }
 }
 
@@ -263,23 +265,25 @@ pub struct Changelog {
 }
 
 impl TryFrom<Rc<Configuration>> for Changelog {
-    type Error = Error;
+    type Error = Box<dyn Error + Send + Sync>;
 
     fn try_from(conf: Rc<Configuration>) -> Result<Self, Self::Error> {
         let mut changelog = Changelog::default();
 
         for repository in &conf.repositories {
-            changelog.repositories.push(
-                Repository::try_from((&conf.kinds, repository)).with_context(|err| {
-                    format!(
-                        "could not process repository '{}', {}",
-                        repository.name, err
-                    )
-                })?,
-            );
+            changelog
+                .repositories
+                .push(
+                    Repository::try_from((&conf.kinds, repository)).map_err(|err| {
+                        format!(
+                            "could not process repository '{}', {}",
+                            repository.name, err
+                        )
+                    })?,
+                );
         }
 
-        ok!(changelog)
+        Ok(changelog)
     }
 }
 
