@@ -3,7 +3,6 @@
 //! The logger module provides the log facility.
 use std::cmp::min;
 
-use failure::Error;
 use slog::{slog_o, Drain, Level, LevelFilter, Logger};
 use slog_async::Async;
 use slog_scope::{set_global_logger, GlobalLoggerGuard as Guard};
@@ -11,7 +10,7 @@ use slog_term::{FullFormat, TermDecorator};
 
 /// Initialize the logger. Set the verbosity.
 #[must_use]
-pub fn initialize(verbose: usize) -> Result<Guard, Error> {
+pub fn initialize(verbose: usize) -> Guard {
     let term_decorator = TermDecorator::new().build();
     let term_drain = FullFormat::new(term_decorator).build().fuse();
     let term_drain = Async::new(term_drain).build().fuse();
@@ -23,5 +22,5 @@ pub fn initialize(verbose: usize) -> Result<Guard, Error> {
     let drain = LevelFilter::new(term_drain, level).fuse();
     let guard = set_global_logger(Logger::root(drain, slog_o!()));
 
-    ok!(guard)
+    guard
 }

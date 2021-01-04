@@ -2,38 +2,33 @@
 //!
 //! The build module create rust files at build time
 //! in order to inject some source code.
-use std::env;
-use std::fs::File;
-use std::io::Write;
+use std::{env, error::Error, fs::File, io::Write};
 
-use failure::{Error, ResultExt};
+use chrono::Utc;
 use git2::Repository;
-use time::now_utc;
 
-pub fn main() -> Result<(), Error> {
+pub fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     // Load the current git repository and retrieve the last commit using the
     // HEAD current reference
     let repository = Repository::discover(".")
-        .with_context(|err| format!("Expect to have a git repository, {}", err))?;
+        .map_err(|err| format!("Expect to have a git repository, {}", err))?;
 
     let identifier = repository
         .revparse_single("HEAD")
-        .with_context(|err| format!("Expect to have at least one git commit, {}", err))?
+        .map_err(|err| format!("Expect to have at least one git commit, {}", err))?
         .id();
 
-    let profile = env::var("PROFILE")
-        .with_context(|err| format!("Expect to be built using cargo, {}", err))?;
-
-    // Retrieve the current time use UTC timezone
-    let now = now_utc();
+    let profile =
+        env::var("PROFILE").map_err(|err| format!("Expect to be built using cargo, {}", err))?;
 
     // Generate the version file
-    let mut file = File::create("src/version.rs")?;
+    let mut file = File::create("src/version.rs")
+        .map_err(|err| format!("could not create 'src/version.rs' file, {}", err))?;
 
     file.write(
         format!(
             "pub(crate) const BUILD_DATE: &str = \"{}\";\n",
-            now.rfc3339()
+            Utc::now().to_rfc3339(),
         )
         .as_bytes(),
     )?;
