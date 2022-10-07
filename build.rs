@@ -2,12 +2,20 @@
 //!
 //! The build module create rust files at build time
 //! in order to inject some source code.
-use std::{env, error::Error, fs::File, io::Write};
+use std::{
+    env,
+    error::Error,
+    fs::File,
+    io::{Read, Write},
+};
 
 use chrono::Utc;
 use git2::Repository;
 
-pub fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+const TEMPLATE_SRC: &str = "templates/changelog.mjml";
+const TEMPLATE_DST: &str = "templates/changelog.html";
+
+fn build_source_code_info() -> Result<(), Box<dyn Error + Send + Sync>> {
     // Load the current git repository and retrieve the last commit using the
     // HEAD current reference
     let repository = Repository::discover(".")
@@ -48,5 +56,25 @@ pub fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     file.sync_all()
         .map_err(|err| format!("could not sync file 'src/version.rs', {}", err))?;
 
+    Ok(())
+}
+
+fn build_mjml_template() -> Result<(), Box<dyn Error + Send + Sync>> {
+    let mut src_file = File::open(TEMPLATE_SRC)?;
+    let mut dst_file = File::create(TEMPLATE_DST)?;
+    let mut input_buffer = String::new();
+    src_file.read_to_string(&mut input_buffer)?;
+    let root = mrml::parse(input_buffer).map_err(|_| "could not parse input file")?;
+    let opts = mrml::prelude::render::Options::default();
+    let content = root
+        .render(&opts)
+        .map_err(|_| "could not render mjml template")?;
+    dst_file.write_all(content.as_bytes())?;
+    Ok(())
+}
+
+pub fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+    build_source_code_info()?;
+    build_mjml_template()?;
     Ok(())
 }

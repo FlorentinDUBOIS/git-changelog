@@ -4,9 +4,8 @@
 
 ## Getting started
 
-To compile this application, you need an environment with rust and node available. 
-If you have to install one of them, you should take a look at [rustup](https://rustup.rs/)
-and [nvm](https://github.com/nvm-sh/nvm).
+To compile this application, you need an environment with rust available.
+If you have to install one of them, you should take a look at [rustup](https://rustup.rs/).
 
 ### Compiling from sources
 
@@ -16,13 +15,7 @@ Firstly, we will clone the repository using the following command:
 git clone git@github.com:FlorentinDUBOIS/git-changelog.git
 ```
 
-Then, we will need to compile the html template using npm:
-
-```shell
-npm i && npm run build
-```
-
-Finaly, compile the application
+Compile the application:
 
 ```sh
 cargo build --release
@@ -32,7 +25,7 @@ You can find the released binary in the `target/release` folder.
 
 ## Configuration
 
-An example of the `policy.toml` file used to generate the changelog:
+An example of the `changelog.toml` file used to generate the changelog:
 
 ```toml
 # Kinds are based on https://github.com/angular/angular/blob/master/CONTRIBUTING.md#type
@@ -152,3 +145,7 @@ git tag -a [-s] vX.Y.Z
 ```
 
 This will open an editor to add a message on the git tag.
+
+### Template changes
+
+If you want to change the mjml file, you will have to rebuild git-changelog to apply your modification.

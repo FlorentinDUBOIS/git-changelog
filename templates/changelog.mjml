@@ -14,9 +14,9 @@
 				<mj-text font-size="18px" color="#626262">{{ tag.name }}</mj-text>
 				<mj-raw>{% for (kind, commits) in tag.commits %}</mj-raw>
 				<mj-text font-style="bold" color="#626262">{{ kind }}</mj-text>
-				<mj-raw>{% for commit in commits %}</mj-raw>
-				<mj-raw>{% match commit.link -%}</mj-raw>
-				<mj-raw>{%- when Some with (link) -%}</mj-raw>
+				<mj-raw>{% for commit in commits %}
+				{% match commit.link -%}
+				{%- when Some with (link) -%}</mj-raw>
 				<mj-text color="#626262">
 					{{ commit.date }} - <a href="{{ link }}" target="_blank">{{ commit.hash }}</a> - {{ commit.message }} - {{ commit.author }}
 				</mj-text>
