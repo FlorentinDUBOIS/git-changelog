@@ -2,7 +2,7 @@
 //!
 //! The configuration module handle the changelog.toml file
 
-use std::{collections::HashMap, convert::TryFrom, error::Error, path::PathBuf};
+use std::{collections::BTreeMap, convert::TryFrom, error::Error, path::PathBuf};
 
 use config::{Config, File};
 use serde::{Deserialize, Serialize};
@@ -18,7 +18,7 @@ pub struct Repository {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Configuration {
-    pub kinds: HashMap<String, String>,
+    pub kinds: BTreeMap<String, String>,
     pub repositories: Vec<Repository>,
 }
 

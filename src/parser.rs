@@ -2,7 +2,7 @@
 //!
 //! The parser module will parse the git commit history to build changelog
 
-use std::{collections::HashMap, convert::TryFrom, error::Error, rc::Rc};
+use std::{collections::{BTreeMap, HashMap}, convert::TryFrom, error::Error, rc::Rc};
 
 use askama::Template;
 use chrono::{DateTime, NaiveDateTime, Utc};
@@ -83,11 +83,11 @@ impl TryFrom<(&conf::Repository, &git::Commit<'_>)> for Commit {
 #[derive(Clone, Debug)]
 pub struct Tag {
     pub name: String,
-    pub commits: HashMap<String, Vec<Commit>>,
+    pub commits: BTreeMap<String, Vec<Commit>>,
 }
 
-impl From<(String, HashMap<String, Vec<Commit>>)> for Tag {
-    fn from(tuple: (String, HashMap<String, Vec<Commit>>)) -> Self {
+impl From<(String, BTreeMap<String, Vec<Commit>>)> for Tag {
+    fn from(tuple: (String, BTreeMap<String, Vec<Commit>>)) -> Self {
         let (name, commits) = tuple;
 
         Self { name, commits }
@@ -109,10 +109,10 @@ impl From<String> for Repository {
     }
 }
 
-impl TryFrom<(&HashMap<String, String>, &conf::Repository)> for Repository {
+impl TryFrom<(&BTreeMap<String, String>, &conf::Repository)> for Repository {
     type Error = Box<dyn Error + Send + Sync>;
 
-    fn try_from(tuple: (&HashMap<String, String>, &conf::Repository)) -> Result<Self, Self::Error> {
+    fn try_from(tuple: (&BTreeMap<String, String>, &conf::Repository)) -> Result<Self, Self::Error> {
         let (kinds, conf) = tuple;
         let mut repository = Repository::from(conf.name.to_owned());
         let repo = git::Repository::discover(&conf.path).map_err(|err| {
@@ -170,7 +170,7 @@ impl TryFrom<(&HashMap<String, String>, &conf::Repository)> for Repository {
             .set_sorting(git::Sort::TIME | git::Sort::REVERSE)
             .map_err(|err| format!("failed to sort git commit history, {}", err))?;
 
-        let mut commits = HashMap::new();
+        let mut commits = BTreeMap::new();
         for oid in revwalk {
             let oid =
                 oid.map_err(|err| format!("could not retrieve object identifier, {}", err))?;
@@ -242,7 +242,7 @@ impl TryFrom<(&HashMap<String, String>, &conf::Repository)> for Repository {
                     commits,
                 )));
 
-                commits = HashMap::new();
+                commits = BTreeMap::new();
             }
         }
 
